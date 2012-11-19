@@ -29,3 +29,14 @@
 # do restore after clone (always,ask,none)
 #restore=always
 
+# limit rows of "status" output
+#rows=4
+
+# interval (in seconds) to refresh "status" output.
+# set it to 0 (refresh=0) to disable continuous refreshing and run "status"
+# only once
+#refresh=120
+
+# path to spec skeleton
+#defaultspec=/usr/share/abb/spek.skel
+

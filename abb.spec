@@ -1,6 +1,6 @@
 Name:		abb
-Version:	0.1
-Release:	3
+Version:	0.2
+Release:	1
 Summary:	Command-line client for abf.rosalinux.ru
 
 Group:		System/Configuration/Packaging
@@ -10,6 +10,7 @@ Source0:	%{name}
 Source1:	%{name}rc
 Source2:	readme
 Source3:	gpl-3.0.txt
+source4:	spek.skel
 Requires:	bash
 Requires:	git
 BuildArch:	noarch
@@ -25,7 +26,10 @@ cp %{SOURCE2} .
 %install
 install -d %{buildroot}%{_bindir}
 install %{SOURCE0} %{buildroot}%{_bindir}/
+install -d %{buildroot}%{_datadir}/%{name}
+install %{SOURCE4} %{buildroot}%{_datadir}/%{name}/
 
 %files
 %doc abbrc readme
 %{_bindir}/%{name}
+%{_datadir}/%{name}
