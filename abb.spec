@@ -35,5 +35,5 @@ install %{SOURCE5} %{buildroot}%{_bindir}/
 
 %files
 %doc abbrc readme
-%{_bindir}/%{name}
+%{_bindir}/%{name}*
 %{_datadir}/%{name}
