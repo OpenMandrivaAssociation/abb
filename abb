@@ -114,7 +114,7 @@ do_restore() {
 	else
 		if [ -e "${abfyml}" ]; then
 			echo "parsing file '${abfyml}'"
-			sed -rn 's/^[\"'\''[:space:]]*([^[:space:]:\"'\'']+)[\"'\''[:space:]]*.*[\"'\''[:space:]]*([0-9a-fA-F]{40})[\"'\''[:space:]]*$/\1 \2/p' ${abfyml} | \
+			sed -rn '$G;s/^[\"'\''[:space:]]*([^[:space:]:\"'\'']+)[\"'\''[:space:]]*.*[\"'\''[:space:]]*([0-9a-fA-F]{40})[\"'\''[:space:]]*$/\1 \2/p' ${abfyml} | \
 			while read file sha; do
 				#echo -n "found entry: file=${file} sha1sum=${sha} ... "
 				echo -n "found entry: file=${file} ... "
@@ -172,7 +172,7 @@ do_build() {
 	local d=$PWD
 	local spec=(*.spec)
 	if [ ${#spec[@]} -eq 1 ]; then
-		local cmd="rpmbuild --define '_topdir ${d}' --define '_sourcedir ${d}' ${spec}"
+		local cmd="mkdir -p ${d}/BUILD; rpmbuild --define '_topdir ${d}' --define '_sourcedir ${d}' ${spec}"
 		if [ "${buildlog}" == "yes" ]; then
 			local logname="${project}.${action}.$(/bin/date +%Y%m%d-%H%M%S.$(printf %05d $$)).$(hostname -s).buildlog"
 			eval $cmd $action "${opts[@]}" 2>&1 | tee ${logname}
@@ -235,6 +235,8 @@ do_store() {
 		echo "sources:" >> "${abfyml}"
 	fi
 	echo "adding line to '${abfyml}'"
+	# fix missing newline at end of .abf.yml
+	sed -i '$a\' "${abfyml}"
 	echo "  ${file}: ${sha}" >> "${abfyml}"
 }
 
