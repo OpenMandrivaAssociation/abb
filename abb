@@ -27,13 +27,13 @@ server=abf.rosalinux.ru
 # yes yes!
 export GIT_SSL_NO_VERIFY=true
 # owner of repo (user name or group name)
-owner=import
+owner=openmandriva
 # default branch
-branch=rosa2012.1
+branch=master
 # default remote
 remote=origin
 # insecure:
-#auth=user:password
+# auth=user:password
 # more secure, but very-very uncomfortable:
 #auth=user
 # default rpmbuild action
@@ -51,9 +51,9 @@ refresh=120
 # path to spec skeleton
 defaultspec=/usr/share/abb/spek.skel
 # build arch
-arch="i586,x86_64"
+arch="i586 x86_64 armv7hl armv7l"
 # platform
-platform="rosa2012.1"
+platform="cooker"
 # repos to include from platform (f.e. "repos=main,contrib")
 repos=
 # update type (security bugfix enhancement recommended newpackage)
@@ -61,7 +61,7 @@ updatetype=security
 # hash of commit to remote build
 commit=
 # auto publish (true|false)
-publish=false
+publish=true
 # rebuild a package with all its reverse dependencies (true|false)
 withrequired=false
 # repo to save
@@ -572,7 +572,7 @@ do_send() {
 					else
 						[ "${debug}" -gt 0 ] && echo "include_repos: ${include_repos}"
 
-						local archnames="1 i586 2 x86_64"
+						local archnames="1 i586 2 x86_64 5 armv7hl 6 armv7l"
 						## if needed, take arch names from abf:
 						#local archnames=$(wget -qO - \
 						#	${apiurl}'/arches.json' |\
