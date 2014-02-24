@@ -1,11 +1,11 @@
 name:		abb
 version:	0.5
-release:	2
+release:	3
 summary:	command-line client for abf.rosalinux.ru
 
 group:		System/Configuration/Packaging
 license:	GPLv3+
-url:			git://github.com/sash-kan/%{name}.git
+url:		git://github.com/sash-kan/%{name}.git
 buildarch:	noarch
 source0:	%{name}
 source1:	%{name}rc
@@ -44,10 +44,6 @@ install %{SOURCE4} %{buildroot}%{_datadir}/%{name}/
 install %{SOURCE5} %{buildroot}%{_bindir}/
 install -d %{buildroot}%{_datadir}/bash_completion
 install %{SOURCE8} %{buildroot}%{_datadir}/bash_completion/abb
-%if %mdkversion < 201210
-# rosa 2012.0
-sed -i 's/^_have /have /' %{buildroot}%{_datadir}/bash_completion/abb
-%endif
 install -d %{buildroot}%{_sysconfdir}/bash_completion.d
 ln -s %{_datadir}/bash_completion/abb %{buildroot}%{_sysconfdir}/bash_completion.d/abb
 

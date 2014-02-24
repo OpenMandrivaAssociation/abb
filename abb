@@ -51,7 +51,7 @@ refresh=120
 # path to spec skeleton
 defaultspec=/usr/share/abb/spek.skel
 # build arch
-arch="i586 x86_64 armv7hl armv7l"
+arch="i586 x86_64 armv7hl armv7l aarch64"
 # platform
 platform="cooker"
 # repos to include from platform (f.e. "repos=main,contrib")
@@ -572,7 +572,7 @@ do_send() {
 					else
 						[ "${debug}" -gt 0 ] && echo "include_repos: ${include_repos}"
 
-						local archnames="1 i586 2 x86_64 5 armv7hl 6 armv7l"
+						local archnames="1 i586 2 x86_64 5 armv7hl 6 armv7l 7 aarch64"
 						## if needed, take arch names from abf:
 						#local archnames=$(wget -qO - \
 						#	${apiurl}'/arches.json' |\
