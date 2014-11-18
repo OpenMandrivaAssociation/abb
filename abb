@@ -20,7 +20,7 @@
 
 # defaults:
 
-# using proto (http|https)
+# using proto (http|https|ssh)
 proto=https
 # server
 server=abf.rosalinux.ru
@@ -707,6 +707,10 @@ for i in "$@"; do
 		-*)
 			opts=("${opts[@]}" "$i")
 			;;
+		proto=ssh)
+			proto=git@${i}
+			;;
+
 		proto=*)
 			proto=${i#proto=}
 			;;
@@ -784,6 +788,9 @@ for i in "$@"; do
 done
 
 # if auth not empty, add "@" to the end
+if [ "$proto" == "ssh" ]; then
+	auth=git
+fi
 auth=${auth:+${auth}@}
 
 # check arguments
