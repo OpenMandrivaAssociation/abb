@@ -2,7 +2,7 @@
 proto=ssh
 
 # server
-#server=abf.rosalinux.ru
+#server=abf.io
 
 # owner of repo (user name or group name)
 #owner=import

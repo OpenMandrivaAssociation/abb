@@ -23,7 +23,7 @@
 # using proto (http|https|ssh)
 proto=https
 # server
-server=abf.rosalinux.ru
+server=abf.io
 # yes yes!
 export GIT_SSL_NO_VERIFY=true
 # owner of repo (user name or group name)
