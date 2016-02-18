@@ -412,20 +412,20 @@ do_send() {
 
 		local commit_hash=$(echo "${commit}" | sed -rn 's/^([0-9a-zA-Z]{40})$/\1/p')
 
-		if [ -z "${commit_hash}" ]; then
-			local all_project_refs=$(wget -qO - \
-				${apiurl}'/projects/'${project_id}'/refs_list.json' |\
-				abb.json.sh)
-			[ "${debug}" -gt 1 ] && echo "all_project_refs: ${all_project_refs}"
-			local branch_num=$(echo "${all_project_refs}" |\
-				sed -rn 's/^\["refs_list",([0-9]+),"ref"\][[:space:]]*"?'$(echo "${branch}" | sed 's!/!\\/!g')'"?[[:space:]]*$/\1/p')
-			[ "${debug}" -gt 0 ] && echo "branch_num: ${branch_num}"
-			local commit_hash=$(echo "${all_project_refs}" |\
-				sed -rn 's/^\["refs_list",'${branch_num}',"object","sha"\][[:space:]]*"?([0-9a-zA-Z]+)"?[[:space:]]*$/\1/p')
-		fi
+		#if [ -z "${commit_hash}" ]; then
+		#	local all_project_refs=$(wget -qO - \
+		#		${apiurl}'/projects/'${project_id}'/refs_list.json' |\
+		#		abb.json.sh)
+		#	[ "${debug}" -gt 1 ] && echo "all_project_refs: ${all_project_refs}"
+		#	local branch_num=$(echo "${all_project_refs}" |\
+		#		sed -rn 's/^\["refs_list",([0-9]+),"ref"\][[:space:]]*"?'$(echo "${branch}" | sed 's!/!\\/!g')'"?[[:space:]]*$/\1/p')
+		#	[ "${debug}" -gt 0 ] && echo "branch_num: ${branch_num}"
+		#	local commit_hash=$(echo "${all_project_refs}" |\
+		#		sed -rn 's/^\["refs_list",'${branch_num}',"object","sha"\][[:space:]]*"?([0-9a-zA-Z]+)"?[[:space:]]*$/\1/p')
+		#fi
 
-		if [ -z "${commit_hash}" ]; then
-			echo "do not know commit hash"
+		if [ -z "${commit_hash}" ] && [ -z "${branch}" ]; then
+			echo "commit hash and branch are not set"
 		else
 			[ "${debug}" -gt 0 ] && echo "commit_hash: ${commit_hash}"
 
@@ -572,12 +572,12 @@ do_send() {
 					else
 						[ "${debug}" -gt 0 ] && echo "include_repos: ${include_repos}"
 
-						local archnames="1 i586 2 x86_64 5 armv7hl 6 armv7l 7 aarch64"
-						## if needed, take arch names from abf:
-						#local archnames=$(wget -qO - \
-						#	${apiurl}'/arches.json' |\
-						#	abb.json.sh |\
-						#	sed -rn '/^\["architectures"\]/{s/"id":([0-9]+),"name":"([-_[:alnum:]]+)"/<\1 \2>/g;s/^[^<]*<//;s/>[^>]*$//;s/>[^<>]+</ /g;p}')
+						#local archnames="1 i586 2 x86_64 5 armv7hl 6 armv7l 7 aarch64"
+						# if needed, take arch names from abf:
+						local archnames=$(wget -qO - \
+							${apiurl}'/arches.json' |\
+							abb.json.sh |\
+							sed -rn '/^\["architectures"\]/{s/"id":([0-9]+),"name":"([-_[:alnum:]]+)"/<\1 \2>/g;s/^[^<]*<//;s/>[^>]*$//;s/>[^<>]+</ /g;p}')
 						[ "${debug}" -gt 0 ] && echo "arch names: ${archnames}"
 						[ "${debug}" -gt 0 ] && echo "build arches: ${arches[@]}"
 
@@ -585,10 +585,14 @@ do_send() {
 							local archn=$(echo ${archnames} | sed -rn 's/^.*\<([0-9]+) '${i}'\>.*$/\1/p')
 							[ -z "${archn}" ] && continue
 
+							if [ -n "${commit_hash}" ]; then
+								branch=
+							fi
 							local post="
 								{
 								\"build_list\": {
 									\"project_id\": ${project_id},
+									\"project_version\": \"${branch}\",
 									\"commit_hash\": \"${commit_hash}\",
 									\"update_type\": \"${update_type}\",
 									\"save_to_repository_id\": ${save_to_repository_id},
