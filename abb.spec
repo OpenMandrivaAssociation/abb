@@ -1,6 +1,6 @@
 name:		abb
 version:	0.5
-release:	6
+release:	7
 summary:	command-line client for abf.rosalinux.ru
 
 group:		System/Configuration/Packaging
