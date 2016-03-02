@@ -601,7 +601,7 @@ do_send() {
 									\"build_requires\": ${build_requires},
 									\"include_repos\": [ ${include_repos} ],
 									\"arch_id\": ${archn},
-									\"external_nodes\": [""]
+									\"external_nodes\":  \"\"
 								}
 							}"
 							post=$(echo $post | sed -r 's/[[:space:]]+//g')
