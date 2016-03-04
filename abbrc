@@ -1,8 +1,8 @@
-# using proto (http|https) 
-#proto=https
+# using proto (http|https|ssh)
+#proto=ssh
 
 # server
-#server=abf.rosalinux.ru
+#server=abf.io
 
 # owner of repo (user name or group name)
 #owner=import

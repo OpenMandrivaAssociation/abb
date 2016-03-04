@@ -1,7 +1,7 @@
 #!/bin/bash
 # vim: sw=2:ts=2:sts=2
 
-# abb is command-line client for abf <http://abf.rosalinux.ru>
+# abb is command-line client for abf <http://abf.openmandriva.org>
 # Copyright (C) 2012 alexander barakin aka sash-kan <alex@barak.in>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -20,20 +20,20 @@
 
 # defaults:
 
-# using proto (http|https)
+# using proto (http|https|ssh)
 proto=https
 # server
-server=abf.rosalinux.ru
+server=abf.openmandriva.org
 # yes yes!
 export GIT_SSL_NO_VERIFY=true
 # owner of repo (user name or group name)
-owner=import
+owner=openmandriva
 # default branch
-branch=rosa2012.1
+branch=openmandriva2014.0
 # default remote
 remote=origin
 # insecure:
-#auth=user:password
+# auth=user:password
 # more secure, but very-very uncomfortable:
 #auth=user
 # default rpmbuild action
@@ -51,9 +51,9 @@ refresh=120
 # path to spec skeleton
 defaultspec=/usr/share/abb/spek.skel
 # build arch
-arch="i586,x86_64"
+arch="i586 x86_64"
 # platform
-platform="rosa2012.1"
+platform="openmandriva2014.0"
 # repos to include from platform (f.e. "repos=main,contrib")
 repos=
 # update type (security bugfix enhancement recommended newpackage)
@@ -61,7 +61,7 @@ updatetype=security
 # hash of commit to remote build
 commit=
 # auto publish (true|false)
-publish=false
+publish=true
 # rebuild a package with all its reverse dependencies (true|false)
 withrequired=false
 # repo to save
@@ -152,7 +152,7 @@ do_restore() {
 					fi
 				else
 					echo -n "try to download... "
-					if wget -qO - "http://file-store.rosalinux.ru/download/${sha}" > "${file}"; then
+					if wget -qO - "http://file-store.openmandriva.org/download/${sha}" > "${file}"; then
 						echo "ok"
 						echo -n "check sum... "
 						if echo "${sha}  ${file}" | sha1sum -c --status; then
@@ -204,7 +204,7 @@ do_build() {
 	if [ ${#spec[@]} -eq 1 ]; then
 		local cmd="mkdir -p ${d}/BUILD; rpmbuild --define '_topdir ${d}' --define '_sourcedir ${d}' ${spec}"
 		if [ "${buildlog}" == "yes" ]; then
-			local logname="${project}.${action}.$(/bin/date +%Y%m%d-%H%M%S.$(printf %05d $$)).$(hostname -s).buildlog"
+			local logname="${project}.${action}.$(/bin/date +%Y-%m-%d-%H-%M-%S.$(printf %05d $$)).$(hostname -s).buildlog"
 			eval $cmd $action "${opts[@]}" 2>&1 | tee ${logname}
 			echo "build log is saved in ${logname}"
 		else
@@ -240,16 +240,16 @@ do_store() {
 	fi
 
 	echo -n "check if file also stored... "
-	if wget -q --spider http://file-store.rosalinux.ru/download/${sha}; then
+	if wget -q --spider http://file-store.openmandriva.org/download/${sha}; then
 		echo "yes"
 		echo "skip storing"
 	else
 		echo "no"
 		echo "try to store file ${file}"
-		local curloutput=$(curl -s -X POST -F "file_store[file]=@${file}" http://${auth}file-store.rosalinux.ru/api/v1/upload)
+		local curloutput=$(curl -s -X POST -F "file_store[file]=@${file}" http://${auth}file-store.openmandriva.org/api/v1/upload)
 
 		echo -n "check if file stored correctly... "
-		if wget -q --spider http://file-store.rosalinux.ru/download/${sha}; then
+		if wget -q --spider http://file-store.openmandriva.org/download/${sha}; then
 			echo "ok"
 		else
 			echo "error: can't check"
@@ -282,7 +282,7 @@ do_status() {
 		fi
 		echo "Id Status Project Version SaveToRepository Architecture User"
 		while true; do
-			#out2=$(lynx -dump "https://${auth}abf.rosalinux.ru/${owner}/${project}/build_lists" | \
+			#out2=$(lynx -dump "https://${auth}abf.openmandriva.org/${owner}/${project}/build_lists" | \
 			out2=$(lynx -dump "${projurl}/${project}/build_lists" | \
 				sed -rn '/^[[:space:]]+\[[0-9]+\][0-9]+ /{N;N;s/\[[0-9]+\]//g;s/\n/ /g;s/ +/ /g;p}' | \
 				tac | tail -n ${rows})
@@ -318,7 +318,7 @@ do_new() {
 do_view() {
 	if [[ ${project} =~ ^[0-9]+$ ]]; then
 		# number - assume it is build list id
-		w3m "https://${auth}abf.rosalinux.ru/build_lists/${project}"
+		w3m "https://${auth}abf.openmandriva.org/build_lists/${project}"
 	else
 		# not number - assume it is name of project
 		w3m "${projurl}/${project}"
@@ -412,20 +412,20 @@ do_send() {
 
 		local commit_hash=$(echo "${commit}" | sed -rn 's/^([0-9a-zA-Z]{40})$/\1/p')
 
-		if [ -z "${commit_hash}" ]; then
-			local all_project_refs=$(wget -qO - \
-				${apiurl}'/projects/'${project_id}'/refs_list.json' |\
-				abb.json.sh)
-			[ "${debug}" -gt 1 ] && echo "all_project_refs: ${all_project_refs}"
-			local branch_num=$(echo "${all_project_refs}" |\
-				sed -rn 's/^\["refs_list",([0-9]+),"ref"\][[:space:]]*"?'$(echo "${branch}" | sed 's!/!\\/!g')'"?[[:space:]]*$/\1/p')
-			[ "${debug}" -gt 0 ] && echo "branch_num: ${branch_num}"
-			local commit_hash=$(echo "${all_project_refs}" |\
-				sed -rn 's/^\["refs_list",'${branch_num}',"object","sha"\][[:space:]]*"?([0-9a-zA-Z]+)"?[[:space:]]*$/\1/p')
-		fi
+		#if [ -z "${commit_hash}" ]; then
+		#	local all_project_refs=$(wget -qO - \
+		#		${apiurl}'/projects/'${project_id}'/refs_list.json' |\
+		#		abb.json.sh)
+		#	[ "${debug}" -gt 1 ] && echo "all_project_refs: ${all_project_refs}"
+		#	local branch_num=$(echo "${all_project_refs}" |\
+		#		sed -rn 's/^\["refs_list",([0-9]+),"ref"\][[:space:]]*"?'$(echo "${branch}" | sed 's!/!\\/!g')'"?[[:space:]]*$/\1/p')
+		#	[ "${debug}" -gt 0 ] && echo "branch_num: ${branch_num}"
+		#	local commit_hash=$(echo "${all_project_refs}" |\
+		#		sed -rn 's/^\["refs_list",'${branch_num}',"object","sha"\][[:space:]]*"?([0-9a-zA-Z]+)"?[[:space:]]*$/\1/p')
+		#fi
 
-		if [ -z "${commit_hash}" ]; then
-			echo "do not know commit hash"
+		if [ -z "${commit_hash}" ] && [ -z "${branch}" ]; then
+			echo "commit hash and branch are not set"
 		else
 			[ "${debug}" -gt 0 ] && echo "commit_hash: ${commit_hash}"
 
@@ -572,12 +572,12 @@ do_send() {
 					else
 						[ "${debug}" -gt 0 ] && echo "include_repos: ${include_repos}"
 
-						local archnames="1 i586 2 x86_64"
-						## if needed, take arch names from abf:
-						#local archnames=$(wget -qO - \
-						#	${apiurl}'/arches.json' |\
-						#	abb.json.sh |\
-						#	sed -rn '/^\["architectures"\]/{s/"id":([0-9]+),"name":"([-_[:alnum:]]+)"/<\1 \2>/g;s/^[^<]*<//;s/>[^>]*$//;s/>[^<>]+</ /g;p}')
+						#local archnames="1 i586 2 x86_64 5 armv7hl 6 armv7l 7 aarch64"
+						# if needed, take arch names from abf:
+						local archnames=$(wget -qO - \
+							${apiurl}'/arches.json' |\
+							abb.json.sh |\
+							sed -rn '/^\["architectures"\]/{s/"id":([0-9]+),"name":"([-_[:alnum:]]+)"/<\1 \2>/g;s/^[^<]*<//;s/>[^>]*$//;s/>[^<>]+</ /g;p}')
 						[ "${debug}" -gt 0 ] && echo "arch names: ${archnames}"
 						[ "${debug}" -gt 0 ] && echo "build arches: ${arches[@]}"
 
@@ -585,10 +585,14 @@ do_send() {
 							local archn=$(echo ${archnames} | sed -rn 's/^.*\<([0-9]+) '${i}'\>.*$/\1/p')
 							[ -z "${archn}" ] && continue
 
+							if [ -n "${commit_hash}" ]; then
+								branch=
+							fi
 							local post="
 								{
 								\"build_list\": {
 									\"project_id\": ${project_id},
+									\"project_version\": \"${branch}\",
 									\"commit_hash\": \"${commit_hash}\",
 									\"update_type\": \"${update_type}\",
 									\"save_to_repository_id\": ${save_to_repository_id},
@@ -596,7 +600,8 @@ do_send() {
 									\"auto_publish\": ${auto_publish},
 									\"build_requires\": ${build_requires},
 									\"include_repos\": [ ${include_repos} ],
-									\"arch_id\": ${archn}
+									\"arch_id\": ${archn},
+									\"external_nodes\":  \"\"
 								}
 							}"
 							post=$(echo $post | sed -r 's/[[:space:]]+//g')
@@ -707,6 +712,10 @@ for i in "$@"; do
 		-*)
 			opts=("${opts[@]}" "$i")
 			;;
+		proto=ssh)
+			proto=git@${i}
+			;;
+
 		proto=*)
 			proto=${i#proto=}
 			;;
@@ -784,6 +793,9 @@ for i in "$@"; do
 done
 
 # if auth not empty, add "@" to the end
+if [ "$proto" == "ssh" ]; then
+	auth=git
+fi
 auth=${auth:+${auth}@}
 
 # check arguments
@@ -793,7 +805,7 @@ auth=${auth:+${auth}@}
 # assume we are not in proj dir
 in_proj_dir=0
 
-projurl=${proto}://${auth}${server}/${owner}
+projurl=${proto}://${auth}github.com/OpenMandrivaAssociation
 
 apiurl=${proto}://${auth}${server}/${serverapi}
 
