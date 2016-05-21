@@ -1,6 +1,6 @@
 name:		abb
 version:	0.5
-release:	7.1
+release:	7.2
 summary:	command-line client for abf.rosalinux.ru
 
 group:		System/Configuration/Packaging
@@ -19,17 +19,15 @@ source8:	abb.bash_completion
 
 requires:	bash
 requires:	git-core
-# w3m in contrib repo
-#suggests:	w3m
 requires:	curl
-suggests:	lynx
 requires:	wget
 requires:	rpm-build
+suggests:	lynx
 
 buildarch:	noarch
 
 %description
-abb is command-line client for <http://abf.rosalinux.ru>
+abb is command-line client for <https://abf.openmandriva.org>
 
 %prep
 %setup -qcT

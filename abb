@@ -29,7 +29,7 @@ export GIT_SSL_NO_VERIFY=true
 # owner of repo (user name or group name)
 owner=openmandriva
 # default branch
-branch=master
+branch=lx3
 # default remote
 remote=origin
 # insecure:
