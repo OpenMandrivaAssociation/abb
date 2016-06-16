@@ -21,7 +21,7 @@
 # defaults:
 
 # using proto (http|https|ssh)
-proto=https
+proto=ssh
 # server
 server=abf.openmandriva.org
 # yes yes!
