@@ -5,7 +5,7 @@ summary:	command-line client for abf.rosalinux.ru
 
 group:		System/Configuration/Packaging
 license:	GPLv3+
-url:		git://github.com/sash-kan/%{name}.git
+url:		https://github.com/sash-kan/abb
 buildarch:	noarch
 source0:	%{name}
 source1:	%{name}rc
