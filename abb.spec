@@ -1,7 +1,7 @@
 name:		abb
 version:	0.5
-release:	7.2
-summary:	command-line client for abf.rosalinux.ru
+release:	7.3
+summary:	command-line client for abf.openmandriva.org
 
 group:		System/Configuration/Packaging
 license:	GPLv3+
@@ -22,6 +22,7 @@ requires:	git-core
 requires:	curl
 requires:	wget
 requires:	rpm-build
+requires:	dnf-plugins-core
 suggests:	lynx
 
 buildarch:	noarch
