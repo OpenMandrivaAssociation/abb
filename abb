@@ -51,7 +51,7 @@ refresh=120
 # path to spec skeleton
 defaultspec=/usr/share/abb/spek.skel
 # build arch
-arch="i586 x86_64 armv7hl aarch64"
+arch="i686 x86_64 armv7hnl aarch64 znver1"
 # platform
 platform="cooker"
 # repos to include from platform (f.e. "repos=main,contrib")
