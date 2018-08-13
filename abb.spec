@@ -25,8 +25,6 @@ requires:	rpm-build
 requires:	dnf-plugins-core
 suggests:	lynx
 
-buildarch:	noarch
-
 %description
 abb is command-line client for <https://abf.openmandriva.org>
 
