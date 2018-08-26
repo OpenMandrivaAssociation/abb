@@ -152,7 +152,7 @@ do_restore() {
 					fi
 				else
 					echo -n "try to download... "
-					if wget -qO - "http://file-store.openmandriva.org/download/${sha}" > "${file}"; then
+					if wget -qO - "https://file-store.openmandriva.org/download/${sha}" > "${file}"; then
 						echo "ok"
 						echo -n "check sum... "
 						if echo "${sha}  ${file}" | sha1sum -c --status; then
@@ -240,16 +240,16 @@ do_store() {
 	fi
 
 	echo -n "check if file also stored... "
-	if wget -q --spider http://file-store.openmandriva.org/download/${sha}; then
+	if wget -q --spider https://file-store.openmandriva.org/download/${sha}; then
 		echo "yes"
 		echo "skip storing"
 	else
 		echo "no"
 		echo "try to store file ${file}"
-		local curloutput=$(curl -s -X POST -F "file_store[file]=@${file}" http://${auth}file-store.openmandriva.org/api/v1/upload)
+		local curloutput=$(curl -s -X POST -F "file_store[file]=@${file}" https://${auth}file-store.openmandriva.org/api/v1/upload)
 
 		echo -n "check if file stored correctly... "
-		if wget -q --spider http://file-store.openmandriva.org/download/${sha}; then
+		if wget -q --spider https://file-store.openmandriva.org/download/${sha}; then
 			echo "ok"
 		else
 			echo "error: can't check"
