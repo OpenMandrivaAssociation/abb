@@ -12,19 +12,18 @@ Requires:
 %description
 
 %prep
-%setup -q
+%autosetup -p1
 
 %build
-%configure2_5x
-%make
+%configure
+%make_build
 
 %install
-%makeinstall_std
+%make_install
 
 %check
 
 %files
-%defattr(-,root,root,-)
 %doc
 
 %changelog
