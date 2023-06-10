@@ -246,16 +246,25 @@ do_store() {
 	else
 		echo "no"
 		echo "try to store file ${file}"
-		local curloutput=$(curl -s -X POST -F "file_store[file]=@${file}" https://${auth}file-store.openmandriva.org/api/v1/upload)
+		local curloutput=""
+		local ok=false
+		for try in `seq 1 10`; do
+			curloutput=$(curl -s -X POST -F "file_store[file]=@${file}" https://${auth}file-store.openmandriva.org/api/v1/upload)
 
-		echo -n "check if file stored correctly... "
-		if wget -q --spider https://file-store.openmandriva.org/download/${sha}; then
-			echo "ok"
-		else
-			echo "error: can't check"
-			echo "curl output:"
-			echo ${curloutput}
-			echo "aborting..."
+			echo -n "check if file stored correctly... "
+			if wget -q --spider https://file-store.openmandriva.org/download/${sha}; then
+				ok=true
+				break
+			else
+				echo "error: can't check"
+				echo "curl output:"
+				echo ${curloutput}
+				echo "retrying in 5s..."
+				sleep 5s
+			fi
+		done
+		if ! $ok; then
+			echo "Upload failed"
 			return 1
 		fi
 	fi

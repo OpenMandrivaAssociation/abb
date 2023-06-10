@@ -1,6 +1,6 @@
 name:		abb
 version:	0.5
-release:	8
+release:	9
 summary:	command-line client for abf.openmandriva.org
 
 group:		System/Configuration/Packaging
