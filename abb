@@ -24,8 +24,6 @@
 proto=https
 # server
 server=abf.openmandriva.org
-# yes yes!
-export GIT_SSL_NO_VERIFY=true
 # owner of repo (user name or group name)
 owner=openmandriva
 # default branch
