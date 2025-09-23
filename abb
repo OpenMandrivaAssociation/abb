@@ -206,6 +206,7 @@ do_build() {
 	if [ ${#spec[@]} -eq 1 ]; then
 		mkdir -p "${d}/BUILD"
 		if [ "${buildlog}" == "yes" ]; then
+			local logname="${project}.${action}.$(/bin/date +%Y-%m-%d-%H-%M-%S.$(printf %05d $$)).$(hostname -s).buildlog"
 			rpmbuild "${action}" --define "_topdir ${d}" --define "_sourcedir ${d}" "${spec[@]}" "${opts[@]}" 2>&1 | tee "${logname}"
 			status=${PIPESTATUS[0]}
 			echo "build log is saved in ${logname}"
