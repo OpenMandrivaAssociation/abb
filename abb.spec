@@ -1,6 +1,6 @@
 name:		abb
 version:	0.5.3
-release:	1
+release:	2
 summary:	command-line client for abf.openmandriva.org
 
 group:		System/Configuration/Packaging
@@ -22,7 +22,6 @@ requires:	git-core
 requires:	curl
 requires:	wget
 requires:	rpm-build
-requires:	dnf-plugins-core
 suggests:	lynx
 
 %description
