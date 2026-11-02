@@ -23,6 +23,10 @@ conffiles:
 first script looking for ~/.abbrc
 if it not exists, then looking for .abbrc in curdir
 
+The ROSA-specific examples and service URLs below are historical references.
+The settings blocks document the defaults in the OpenMandriva script,
+before configuration-file and command-line overrides.
+
 examples:
 $ abb clone rosa-release
 this is equivalent to
@@ -33,9 +37,9 @@ this is equivalent to
 all parts of arguments can be overriden via a conffile
 default settings:
 proto=https
-server=abf.rosalinux.ru
-owner=import
-branch=rosa2012.1
+server=abf.openmandriva.org
+owner=openmandriva
+branch=master
 remote=origin
 auth=
 abfyml=.abf.yml
@@ -139,9 +143,9 @@ command "send" sends to abf.rosalinux.ru request to build project
 $ abb send [<project name> ... ]
 options (with defaults):
 # build arch
-arch="i586,x86_64"
+arch="i686 x86_64 armv7hnl aarch64 znver1"
 # platform
-platform="rosa2012.1"
+platform="cooker"
 # repos to include from platform (f.e. "repos=main,contrib")
 repos=
 # update type (security bugfix enhancement recommended newpackage)
@@ -149,7 +153,7 @@ updatetype=security
 # hash of commit to remote build
 commit=
 # auto publish (true|false)
-publish=false
+publish=true
 # rebuild a package with all its reverse dependencies (true|false)
 withrequired=false
 # repo to save
@@ -162,3 +166,9 @@ reposave=
 # server api part
 serverapi=api/v1
 
+The platform setting selects the remote ABF build platform; local system
+repositories are configured separately.
+
+The publish setting defaults to true and requests automatic publication of
+submitted builds. Pass publish=false on the command line when submitting a
+build to request that automatic publication be disabled.
