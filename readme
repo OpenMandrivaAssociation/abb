@@ -1,49 +1,77 @@
-abb — OpenMandriva package build client
+abb
+===
 
-abb works with RPM package repositories in OpenMandrivaAssociation on GitHub
-and with OpenMandriva's Automated Build Farm (ABF). Use `abb build` to run
-rpmbuild on your machine or `abb send` to submit a build to ABF. The client
-also manages source files in the OpenMandriva file store and sends
-publication requests for ABF builds.
+`abb` builds RPMs locally with `rpmbuild` and submits builds to OpenMandriva's
+Automated Build Farm (ABF). It also uploads and restores source files and
+requests publication of ABF builds.
+
+Requirements
+------------
+
+The `abb` RPM depends on bash, git-core, curl, wget and rpm-build. Local
+builds also need the `BuildRequires` listed in the package spec. Install w3m
+for `abb view` or lynx for the legacy `abb status` command.
 
 Build locally
 -------------
 
-For example, clone the zlib packaging repository and build its RPMs.
+Clone the zlib packaging repository and build its binary RPMs.
 
     abb clone zlib branch=
     cd zlib
     abb build
 
-`clone` uses the OpenMandrivaAssociation GitHub organization. The defaults
-are `branch=master`, `remote=origin` and `restore=always`. An empty `branch=`
-keeps the branch checked out by `git clone`. Use `restore=ask` to confirm
-before restoring sources or `restore=none` to skip that step.
+`clone` fetches repositories from `OpenMandrivaAssociation` on GitHub. It
+defaults to `branch=master` and `remote=origin`. An empty `branch=` keeps
+the branch checked out by `git clone`.
 
-`build` runs rpmbuild in a package checkout with one spec file. Its default
-action is `-bb` (build binary RPMs). Command suffixes select other actions,
-for example `builda` for `-ba` and `buildp` for `-bp`. Extra rpmbuild flags
-can follow the command, as in `abb buildi --short-circuit`. Build output
-is saved to a `.buildlog` file by default (`buildlog=yes`).
+`restore` controls automatic source downloads after `clone` and before
+`build`. `restore=always` is the default, `restore=ask` prompts first, and
+`restore=none` skips automatic downloads. Run `abb restore` to fetch missing
+sources explicitly with any of these settings.
+
+Run `build` in a checkout with one spec file. A one-letter suffix selects
+the corresponding `rpmbuild -b<stage>` action.
+
+    abb command      rpmbuild action
+    build, buildb     -bb  Build binary RPMs (default)
+    builda            -ba  Build binary and source RPMs
+    builds            -bs  Build the source RPM
+    buildp            -bp  Prepare sources (%prep)
+    buildc            -bc  Build through %build
+    buildi            -bi  Build through %install without packaging
+    buildl            -bl  Check the %files list after a run through %install
+
+Pass extra rpmbuild flags after the command. `abb buildi --short-circuit`
+skips the earlier stages and uses an existing build tree. With the default
+`buildlog=yes`, abb saves the output to a `.buildlog` file.
 
 Submit a build to ABF
 ---------------------
 
-You need an ABF account with permission to build the project. From a package
-checkout, submit a test build for the usual OpenMandriva architectures with
-automatic publication disabled.
+You need an ABF account with permission to build the project. Get your API
+token from https://abf.openmandriva.org/settings/private. For HTTP Basic
+authentication over HTTPS, set `auth` to `TOKEN:` or `LOGIN:PASSWORD`.
 
-    abb send arch="x86_64 znver1 aarch64" publish=false
+Run this from the package checkout with `auth` unset in your config. It
+prompts for the token and submits a test build with autopublish disabled.
 
-`send` takes at most one project name. With no name, abb infers the project
-from the checkout. ABF builds the specified Git branch or commit, so push
-any local packaging changes before submitting. On success, abb prints an
-ABF build-list ID for each accepted request.
+    (
+        read -r -s -p 'ABF API token: ' abf_token && printf '\n' &&
+            auth="${abf_token}:" abb send arch="x86_64 znver1 aarch64" publish=false
+    )
 
-OpenMandriva typically builds for `x86_64`, `znver1` and `aarch64`. The
-built-in list also includes `i686` and `armv7hnl`, which OpenMandriva rarely
-targets. Pass multiple targets as a quoted, space-separated `arch` value.
-abb resolves architecture names against the ABF server's architecture list.
+Keep ABF credentials scoped to ABF commands. `clone` and `view` also use
+`auth` when they build GitHub URLs.
+
+`send` takes one optional project name and otherwise infers it from the
+checkout. Push your changes before submitting the Git branch or commit to
+ABF. `send` prints a build-list ID for each accepted request.
+
+OpenMandriva usually builds for `x86_64`, `znver1` and `aarch64`. By default,
+abb tries a separate request for each of the five targets below, including
+`i686` and `armv7hnl`. It skips architecture names ABF does not recognize.
+Pass a quoted, space-separated `arch` value to choose the targets.
 
 Built-in defaults for `send`
 
@@ -51,25 +79,25 @@ Built-in defaults for `send`
     platform=cooker
     publish=true
 
-`platform` selects the remote ABF build platform. `publish=true` requests
-automatic publication of successful builds. Use `publish=false` for a build
-you want to inspect before publishing.
+`platform` selects the ABF build platform. With `publish=true`, abb asks ABF
+to publish successful builds automatically.
 
 Other submission options
 
     branch=master      Git branch to build.
     commit=            Use a full commit hash instead of the branch.
     repos=             Repositories to include, for example main,contrib.
-    reposave=          Destination in platform/repo form. If omitted, abb
-                       uses the project's repository for the build platform.
+    reposave=          Destination in platform/repo form, for example
+                       cooker/main if the project is linked to that repo.
+                       If omitted, abb uses the project's repository for
+                       the build platform.
     updatetype=security
                        Update type. Other values are bugfix, enhancement,
                        recommended and newpackage.
     withrequired=false
                        Set to true to request a rebuild of reverse dependencies.
 
-Use the ABF build lists page to check a build.
-https://abf.openmandriva.org/build_lists
+Check builds at https://abf.openmandriva.org/build_lists.
 
 Command reference
 -----------------
@@ -102,9 +130,8 @@ Command reference
         Open a package repository on GitHub or an ABF build-list page in w3m.
 
     abb status [<project>]
-        Uses lynx to query a build-list path under the GitHub project URL.
-        That path returns 404 for OpenMandriva projects such as zlib. Use the
-        ABF build lists page to check their build status.
+        Legacy command. Queries a GitHub project path that returns 404 for
+        projects such as zlib. Use the ABF build lists page.
 
     abb publish <build-list-id> ...
     abb rejectpublish <build-list-id> ...
