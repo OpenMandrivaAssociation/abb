@@ -1,174 +1,126 @@
-abf local build script
+abb — OpenMandriva package build client
 
-usage:
-$ abb <command> [<project name> ...]
-$ abb clone <project name> ...
-$ abb new <project name>
-$ abb store <file name> ...
-$ abb status [<project name>]
-$ abb view [<project name>|<build_list id>]
-$ abb publish <build_list id> ...
-$ abb rejectpublish <build_list id> ...
+abb works with RPM package repositories in OpenMandrivaAssociation on GitHub
+and with OpenMandriva's Automated Build Farm (ABF). Use `abb build` to run
+rpmbuild on your machine or `abb send` to submit a build to ABF. The client
+also manages source files in the OpenMandriva file store and sends
+publication requests for ABF builds.
 
-where <command>:
-build, builda, buildb, buildp... (see below)
-restore
+Build locally
+-------------
 
-<project name> can be omitted for commands "build*", "restore", "status",
-"send" and "view" if we are in the project dir.
+For example, clone the zlib packaging repository and build its RPMs.
 
-commands "build*", "clone", "store", "restore" accepts multiple args.
+    abb clone zlib branch=
+    cd zlib
+    abb build
 
-conffiles:
-first script looking for ~/.abbrc
-if it not exists, then looking for .abbrc in curdir
+`clone` uses the OpenMandrivaAssociation GitHub organization. The defaults
+are `branch=master`, `remote=origin` and `restore=always`. An empty `branch=`
+keeps the branch checked out by `git clone`. Use `restore=ask` to confirm
+before restoring sources or `restore=none` to skip that step.
 
-The ROSA-specific examples and service URLs below are historical references.
-The settings blocks document the defaults in the OpenMandriva script,
-before configuration-file and command-line overrides.
+`build` runs rpmbuild in a package checkout with one spec file. Its default
+action is `-bb` (build binary RPMs). Command suffixes select other actions,
+for example `builda` for `-ba` and `buildp` for `-bp`. Extra rpmbuild flags
+can follow the command, as in `abb buildi --short-circuit`. Build output
+is saved to a `.buildlog` file by default (`buildlog=yes`).
 
-examples:
-$ abb clone rosa-release
-this is equivalent to
-1. "git clone https://abf.rosalinux.ru/import/rosa-release.git"
-2. "cd rosa-release"
-3. "git checkout -t origin/rosa2012.1"
-4. "cd .."
-all parts of arguments can be overriden via a conffile
-default settings:
-proto=https
-server=abf.openmandriva.org
-owner=openmandriva
-branch=master
-remote=origin
-auth=
-abfyml=.abf.yml
-buildlog=yes
-restore=always
-rows=4
-refresh=120
-defaultspec=/usr/share/abb/spek.skel
+Submit a build to ABF
+---------------------
 
-you can also override any option in command-line
-in form <option>=<value> like there:
-$ abb branch=import_cooker clone rosa-release
-or
-$ abb clone branch=import_cooker rosa-release
-or
-$ abb clone rosa-release branch=import_cooker
+You need an ABF account with permission to build the project. From a package
+checkout, submit a test build for the usual OpenMandriva architectures with
+automatic publication disabled.
 
+    abb send arch="x86_64 znver1 aarch64" publish=false
 
-$ abb build rosa-release
-in this case script tries to determine whether project already clonead
-if not - he clones the project.
-then he tries to download tarballs from storage.
-then he tries to build project.
+`send` takes at most one project name. With no name, abb infers the project
+from the checkout. ABF builds the specified Git branch or commit, so push
+any local packaging changes before submitting. On success, abb prints an
+ABF build-list ID for each accepted request.
 
-you can add suffix to command "build":
-builda - like -ba option to rpmbuild
-buildb - like -bb option to rpmbuild (by default)
-buildp - like -bp option to rpmbuild
-and so forth
+OpenMandriva typically builds for `x86_64`, `znver1` and `aarch64`. The
+built-in list also includes `i686` and `armv7hnl`, which OpenMandriva rarely
+targets. Pass multiple targets as a quoted, space-separated `arch` value.
+abb resolves architecture names against the ABF server's architecture list.
 
-you can specify options, that command "build" transfers to rpmbuild
-for example:
-$ abb buildi --short-circuit
+Built-in defaults for `send`
 
-command "store":
-"store" tries to upload file(s) to abf storage: http://file-store.rosalinux.ru.
-now this service requires authentication to upload files.
-authentication is the same as on the https://abf.rosalinux.ru.
-"store" requires one or more arguments - names of files to store.
-"store" must be run in the project directory.
+    arch="i686 x86_64 armv7hnl aarch64 znver1"
+    platform=cooker
+    publish=true
 
-command "restore":
-"restore" - opposite to "store".
-if "restore" is running in the project directory, it does not require any
-arguments.
-otherwise requires one or more arguments - the names of the projects (or rather
-the project directory), similar to "build" or "clone".
+`platform` selects the remote ABF build platform. `publish=true` requests
+automatic publication of successful builds. Use `publish=false` for a build
+you want to inspect before publishing.
 
-command "clone" and option "restore=[always|ask|none|]":
-now by default abb tries to download files right after "clone".
-you can override this behavior by specifying an option "restore=<condition>"
-in the command-line or in the ~/.abbrc (where <condition> can be "always",
-"ask", or "none").
-for example:
-$ abb clone rosa-release restore=ask
-...
-restore files. is it ok? (Y|n):
-...
+Other submission options
 
-command "status" displays the status of the build tasks of your project on the
-server abf.rosalinux.ru
-option "rows" (default value 4) limit server output to specified number of
-rows.
-option "refresh" (default value 120) sets interval (in seconds) of refreshing
-output.
-to run "status" only once, without refreshing, specify a value less than 60,
-zero for example.
-examples:
-abb status
-abb status rows=1
-abb rows=1 refresh=0 status
+    branch=master      Git branch to build.
+    commit=            Use a full commit hash instead of the branch.
+    repos=             Repositories to include, for example main,contrib.
+    reposave=          Destination in platform/repo form. If omitted, abb
+                       uses the project's repository for the build platform.
+    updatetype=security
+                       Update type. Other values are bugfix, enhancement,
+                       recommended and newpackage.
+    withrequired=false
+                       Set to true to request a rebuild of reverse dependencies.
 
-command "new" creates new project:
-invocation: abb new <project>
-equivalent shell commands:
-1. mkdir <project>
-2. cd <project>
-3. cp <spec skeleton> <project>.spec
-4. git init
-5. git remote add origin <url of project git repo>
-default path to <spec skeleton> is /usr/share/abb/spek.skel.
-you can override it with option defaultspec=/path/to/your/file.
-while copying <spec skeleton>, abb replaces substring '@@project@@' with actual
-name of project.
+Use the ABF build lists page to check a build.
+https://abf.openmandriva.org/build_lists
 
-command "view" requires zero or one args.
-zero: run "w3m http://abf.rosalinux.ru/<owner>/<project>"
-one:
-if arg is numeric, run "w3m http://abf.rosalinux.ru/build_lists/<arg>"
-if arg is not numeric, run "w3m http://abf.rosalinux.ru/<owner>/<arg>"
+Command reference
+-----------------
 
-command "publish" sends to abf.rosalinux.ru request to publish specified build
-lists.
-see: http://abf-doc.rosalinux.ru/v1/buildlists/#publish-build-list
+    abb clone <project> ...
+        Clone one or more package repositories.
 
-command "rejectpublish" sends to abf.rosalinux.ru request to reject publishing
-specified build lists.
-see: http://abf-doc.rosalinux.ru/v1/buildlists/#reject-publish-build-list
+    abb new <project>
+        Initialize a local Git repository with an origin URL. If the spec
+        skeleton is readable, create <project>.spec from it. Override the
+        default skeleton at /usr/share/abb/spek.skel with `defaultspec`.
 
-command "send" sends to abf.rosalinux.ru request to build project
-$ abb send [<project name> ... ]
-options (with defaults):
-# build arch
-arch="i686 x86_64 armv7hnl aarch64 znver1"
-# platform
-platform="cooker"
-# repos to include from platform (f.e. "repos=main,contrib")
-repos=
-# update type (security bugfix enhancement recommended newpackage)
-updatetype=security
-# hash of commit to remote build
-commit=
-# auto publish (true|false)
-publish=true
-# rebuild a package with all its reverse dependencies (true|false)
-withrequired=false
-# repo to save
-# in form "platform/repo"
-# f.e.:
-# "username_personal/main" (simply "personal")
-# "rosa2012.1/contrib" (simply "rosa2012.1"
-# if project default repo is "contrib" for platform "rosa2012.1")
-reposave=
-# server api part
-serverapi=api/v1
+    abb build [<project> ...]
+        Restore sources according to `restore` and run rpmbuild locally.
+        With no project argument, build from the current directory.
 
-The platform setting selects the remote ABF build platform; local system
-repositories are configured separately.
+    abb restore [<project> ...]
+        Download missing files listed in .abf.yml from
+        https://file-store.openmandriva.org and check their SHA-1 sums.
+        With no project argument, use the current directory.
 
-The publish setting defaults to true and requests automatic publication of
-submitted builds. Pass publish=false on the command line when submitting a
-build to request that automatic publication be disabled.
+    abb store <file> ...
+        Run from the package checkout. Upload source files to the OpenMandriva
+        file store and record their names and SHA-1 sums in .abf.yml.
+
+    abb send [<project>]
+        Submit remote build requests to ABF.
+
+    abb view [<project>|<build-list-id>]
+        Open a package repository on GitHub or an ABF build-list page in w3m.
+
+    abb status [<project>]
+        Uses lynx to query a build-list path under the GitHub project URL.
+        That path returns 404 for OpenMandriva projects such as zlib. Use the
+        ABF build lists page to check their build status.
+
+    abb publish <build-list-id> ...
+    abb rejectpublish <build-list-id> ...
+        Request publication or reject publication of the specified ABF builds.
+
+    abb vars [<setting> ...]
+        Print effective settings. For example, `abb vars arch platform publish`
+        shows the targets, platform and publication setting `send` would use.
+
+Configuration
+-------------
+
+abb reads Bash assignments from ~/.abbrc, or from .abbrc in the current
+directory if ~/.abbrc is absent. Pass supported settings as `name=value`
+arguments to override the configuration file for one invocation.
+
+The ABF API defaults to `https://abf.openmandriva.org/api/v1`.
+Set `owner` to the project owner in ABF (default `openmandriva`). The
+`abfyml` setting selects the source manifest (default `.abf.yml`).
